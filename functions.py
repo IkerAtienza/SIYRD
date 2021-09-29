@@ -1,74 +1,63 @@
+# Python modules used
 from scipy.integrate import ode, solve_ivp
-import matplotlib.patches as mpatches ## Used by plot_population_pyramid function
-import matplotlib.ticker as ticker ## To set labels as millions
+import matplotlib.patches as mpatches
+import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
-from itertools import islice ## This is used to split one list in parts of given length
+from itertools import islice
 import pandas as pd
 import numpy as np
-import os # operative system commands
-import glob # takes all files from directory to be deleted
+import os
+import glob
 import csv
 import sys
 
-# NEW! IFR and contacts plot
+# IFR and contacts plot
 def plot_ifr_contacts(x,country):
     # Ifr file is opened and information is saved
     ifr_file = 'ifr_'+str(x)+'.csv'
     reader2 = csv.reader(open('infiles/'+country+'/'+ifr_file, "r"), delimiter=",")
-
     y2 = list(reader2)
     ifr = np.array(y2).astype('float')
 
     # Contact matrix file is opened
-    matrix_file = 'new_M_'+str(x)+'.csv'
+    matrix_file = 'M_'+str(x)+'.csv'
     reader = csv.reader(open(('infiles/'+country+'/'+matrix_file), "r"), delimiter=",")
     y = list(reader)
     m_matrix = np.array(y).astype("float")
-    # Contacts are calculated for each group as the row-elements sum. These values account for the contacts within the group and with the other group
+    # Contacts are calculated for each group as the row-elements sum
     contacts =  [sum(m) for m in m_matrix]
     # Ifr is calculated as percentage
     ifr = [fr*100 for fr in ifr]
     ifr = ifr[0]
 
-    # labels are created
+    # Labels are created
     labels = []
     labels.append('G1 ('+r'$<$'+str(x)+')')
     labels.append('G2 ('+r'$\geq$'+str(x)+')')
 
-    # IFR and contacts are plotted as a bar plot.
+    # IFR and contacts bar plots are created
     fig, ax = plt.subplots(figsize=(8,8))
     ax2=ax.twinx()
-    # x = np.arange(0,len(labels))  # label locations
-    x = np.arange(0,len(labels))  # label locations
-    width = 0.2  # width of the bars
+    x = np.arange(0,len(labels))
+    width = 0.2
     rects1 = ax.bar(x - width/1.8, contacts, width, label='Contacts',color='steelblue',edgecolor='#004c98',linewidth=2)
     rects2 = ax2.bar(x + width/1.8, ifr, width, label='ifr',color='maroon',edgecolor='#4c0026',linewidth=2)
-    # rects1 = ax.bar(x , N_gr, width, color='steelblue', edgecolor='#004c98',linewidth=2)
-
-    # ax.set_ylim(0,13)
     y1 = np.arange(0,16,2)
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize = 20)
     ax.set_yticks(y1)
     ax.set_yticklabels(y1, fontsize = 20, color='steelblue')
     ax.set_ylabel('Number of contacts',color='steelblue',fontsize=20)
-    # ax2 information
     y2 = np.arange(0,27.5,2.5)
-    # ax2.set_ylim(0,20)
     ax2.set_yticks(y2)
     ax2.set_yticklabels(y2, fontsize = 20, color='maroon')
     ax2.set_ylabel('% Infection Fatality Risk',color='maroon',fontsize=20)
-    # ax2.spines['left'].set_color('steelblue')
-    # ax2.spines['right'].set_color('maroon')
     plt.show()
-
 
 # Groups density plot
 def plot_groups_density(x,country):
-    # print(country)
-    # Age distribution input file is opened. Data are saved in two arrays, ages and amounts
+    # Age distribution input file is opened
     ages, amounts = [], []
-    # with open('infiles/Spain/Spain_country_level_age_distribution_85.csv','r') as agefile:
     with open('infiles/'+country+'/'+country+'-2020_gr10.csv','r') as agefile:
         rows = csv.reader(agefile, delimiter=',')
         for row in rows:
@@ -77,12 +66,12 @@ def plot_groups_density(x,country):
 
     # Population density of each group is calculated given the age limit
     num_groups = 2 # two age grups
-    age_limits = [] # age limits will always contain [0, limit1,len(ages)]
+    age_limits = [] # age limits will always contain [0, limit1, len(ages)]
     age_limits.append(0)
-    age_limits.append(int(x/10)) # we add the /10 because we have 9 groups an not 85 as before
+    age_limits.append(int(x/10))
     age_limits.append(len(ages))
 
-    # Total population is splitted in two sublists. Then densitiy for each group is calculated.
+    # Total population is splitted into two sublists. Then densitiy for each group is calculated.
     # groups = 2    age_limits = [0,80,85]      length_to_split = [80,5]     groups = [[80 elements],[5 elements]]
     length_to_split = []
     for i in range(1,len(age_limits)):
@@ -93,6 +82,7 @@ def plot_groups_density(x,country):
     N_gr = [sum(element)/1E6 for element in N_gr]
     total_population = sum(N_gr)
 
+    # y_step variable is created for the correct representation
     if int(total_population) in range(0,10):
         y_step = 2
     elif int(total_population) in range(10,50):
@@ -111,36 +101,34 @@ def plot_groups_density(x,country):
     labels.append('G1 ('+r'$<$'+str(x)+')')
     labels.append('G2 ('+r'$\geq$'+str(x)+')')
 
-
-    # Population for each group is plotted as a barplot
+    # Population density barplot is created
     fig, ax = plt.subplots(figsize=(8,8))
-    x = np.arange(0,len(labels))  # the label locations
+    x = np.arange(0,len(labels))
     y = np.arange(0,total_population+y_step, y_step)
-    width = 0.25  # the width of the bars
+    width = 0.25
     rects1 = ax.bar(x , N_gr, width, color='steelblue', edgecolor='#004c98',linewidth=2)
-
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize = 20)
     ax.set_yticks(y)
     ax.set_ylabel('Population in millions',fontsize=20)
     ax.tick_params(axis='y', labelsize=18)
-
-    # plt.title('Population Density',fontsize=20)
     plt.show()
 
 # Population pyramid plot
 def plot_population_pyramid(country):
-    # print(country)
+    # Input population file is opened
     file = 'infiles/'+str(country)+'/'+str(country)+'-2020.csv'
     df = pd.read_csv(file)
     ages = df['Age']
     males = df['M']
     females = df['F']
+
     # From both peaks of males and females, the highest value is selected for being the limit of x-axis
     max_males = round(max(males)/1E6)
     max_females = round(max(females)/1E6)
     x_limit = max(max_males,max_females)
-    # according to the x_limit the step for the x-axis is changed
+
+    # According to x_limit, the step for the x-axis is changed
     if x_limit in range(0,5):
         if x_limit < 1: # population peak below 1M. X-axis limit is 500k == 0.5M
             step = 0.25
@@ -156,6 +144,7 @@ def plot_population_pyramid(country):
     elif x_limit in range(20,100):
         x_limit = round(x_limit,-1) # x_limit is rounded to the nearest 10 multiple
         step = 10
+
     # x-axis values are created
     x = np.arange(-x_limit,x_limit+step,step)
 
@@ -163,11 +152,9 @@ def plot_population_pyramid(country):
     fig, ax = plt.subplots(figsize=(9,12))
     ax.barh(ages, -males, color = 'steelblue', label = 'Male', edgecolor='#004c98',linewidth=0.5)
     ax.barh(ages, females, color = 'maroon', edgecolor='#4c0026',linewidth=0.5)
-    # ax.set_title(country,fontsize=30)
     ax.set_xticks(x*1E6)
     ax.set_xticklabels([str(abs(v)) for v in x])
     ax.set_xlabel('Population in millions',fontsize=20)
-    # two legends are displayed
     leg1 = ax.legend(loc='upper left', fontsize=18)
     red_patch = mpatches.Patch(color='maroon',label='Female')
     ax.legend(handles=[red_patch], loc = 'upper right', fontsize=18)
@@ -178,7 +165,6 @@ def plot_population_pyramid(country):
 
 # Save simulation results in output file
 def saveResults(filename,t,sim_results):
-    # print("Saving results for file %s" %(filename))
     fout = open(('outfiles/'+filename),"w+")
     fout.write("Time\tS1\tS2\tI1\tI2\tY1\tY2\tR1\tR2\tD1\tD2\tV1\tV2\tNewI\tNewY\n")
 
@@ -191,7 +177,9 @@ def saveResults(filename,t,sim_results):
 
 # SIYRD no vaccination function
 def noVacc(times,init,parms):
+    # Parameters are saved
     N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M = parms
+    # Initial conditions are saved
     S1, S2, I1, I2, Y1, Y2, R1 ,R2, D1, D2, V1, V2, new_I, new_Y =  init
     # ODEs
     dS1dt = -(bsi*M[0][0]*I1/N_gr[0] + bsi*M[0][1]*I2/N_gr[1] + bsy*M[0][0]*Y1/N_gr[0] + bsy*M[0][1]*Y2/N_gr[1])*S1 - v[0]
@@ -213,7 +201,9 @@ def noVacc(times,init,parms):
 
 # SIYRD simultaneous vaccination function
 def simultVacc(times, init, parms):
+    # Parameters are saved
     N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M = parms
+    # Initial conditions are saved
     S1, S2, I1, I2, Y1, Y2, R1 ,R2, D1, D2, V1, V2, new_I, new_Y =  init
     if S1 < (0.3*N_gr[0]): # if 70% of G1 is recovered (S1<30%), vaccination is stopped for this group
         v[0] = 0
@@ -239,7 +229,9 @@ def simultVacc(times, init, parms):
 
 # SIYRD G1 priority vaccination function
 def priorG1Vacc(times,init,parms):
+    # Parameters are saved
     N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M = parms
+    # Initial conditions are saved
     S1, S2, I1, I2, Y1, Y2, R1 ,R2, D1, D2, V1, V2, new_I, new_Y =  init
 
     if S1 < (0.3*N_gr[0]): # if 70% of G1 is recovered (S1<30%), vaccination is stopped for this group
@@ -269,7 +261,9 @@ def priorG1Vacc(times,init,parms):
 
 # SIYRD G2 priority vaccination function
 def priorG2Vacc(times,init,parms):
+    # Parameters are saved
     N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M = parms
+    # Initial conditions are saved
     S1, S2, I1, I2, Y1, Y2, R1 ,R2, D1, D2, V1, V2, new_I, new_Y =  init
 
     if S2 < (0.3*N_gr[1]): # if 70% of G2 is recovered (S2<30%), vaccination is stopped for this group
@@ -299,9 +293,8 @@ def priorG2Vacc(times,init,parms):
 
 # SIYRD model implementation
 def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_rate,limit):
-    # Age distribution input file is opened. Data are saved in two arrays, ages and amounts
+    # Age distribution input file is opened
     ages, amounts = [], []
-    # with open('infiles/Spain/Spain_country_level_age_distribution_85.csv','r') as agefile:
     with open('infiles/'+country+'/'+country+'-2020_gr10.csv','r') as agefile:
         rows = csv.reader(agefile, delimiter=',')
         for row in rows:
@@ -309,10 +302,10 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
             amounts.append(float(row[1]))
 
     # Population density of each group is calculated given the age limit
-    num_groups = 2 # two age grups
-    age_limits = [] # age limits will always contain [0, limit1,len(ages)]
+    num_groups = 2
+    age_limits = []
     age_limits.append(0)
-    age_limits.append(int(limit/10)) # sl1 is the age limit /10 is added for the new distribution
+    age_limits.append(int(limit/10))
     age_limits.append(len(ages))
 
     # Total population is splitted in two sublists. Then densitiy for each group is calculated.
@@ -320,34 +313,30 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     length_to_split = []
     for i in range(1,len(age_limits)):
         length_to_split.append(age_limits[i]-age_limits[i-1])
-    amounts_iter = iter(amounts) # iter object is needed
+    amounts_iter = iter(amounts)
     N_gr = [list(islice(amounts_iter, elem)) for elem in length_to_split]
     # by adding all elements in each sublist we get the # of individuals of each group defined
     N_gr = [sum(element) for element in N_gr]
     # by adding sub groups # of individuals we get the total population
     N_total = sum(N_gr)
+
     # Labels for the plots are created according to age limit
     # groups = 2    age_limits = [0,80,85]----->[80]    numbers = '80'      labels = ['<80','≥ 80']
     labels = []
-    # First and last elements are deleted. Corresponding to 0 and 85. We do not need that information from now.
-    age_limits = age_limits[1:-1]
-    # string containing the limits is created. Needed to open the correct input files regarding contact matrix and ifr
-    # numbers = ''.join(map(str, age_limits))
     labels.append('<'+str(limit))
     labels.append('≥'+str(limit))
 
-    # Contact matrix is opened and save in the M array with float number.
+    # Contact matrix is opened
     M = []
-    with open(('infiles/'+country+'/new_M_'+str(limit)+'.csv'),'r') as matrix:
+    with open(('infiles/'+country+'/M_'+str(limit)+'.csv'),'r') as matrix:
         rows = csv.reader(matrix, delimiter=',')
         for row in rows:
             M.append(row)
-    # convert string values to float values
     for i in range(len(M)):
         for j in range(len(M[i])):
             M[i][j] = float(M[i][j])
 
-    # IFR file is opened, Info is saved in the array ifr as float numbers
+    # IFR file is opened
     ifr = []
     with open(('infiles/'+country+'/ifr_'+str(limit)+'.csv'),'r') as ifr_file:
         rows = csv.reader(ifr_file, delimiter=',')
@@ -367,12 +356,12 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     # mui, muy, r , v = [], [], [],[]
     v = []
     S, I, Y , R , D = [], [], [] , [], []
-    new_I, new_Y = [],[] # new infections and reinfections are saved at each time step
-    V = [] # new vaccinations are saved for both groups at each time step
+    new_I, new_Y = [],[] # new infections and reinfections recorded
+    V = [] # new vaccinations are recorded
 
     # Vaccination order is created.
     vacc_order = []
-    if v_rate == 0: # no vaccination, vacc_order = [] empty list: choice argument is not considered
+    if v_rate == 0: # no vaccination, vacc_order = empty list
         pass
     else:
         if vacc_choice == 1: # vacc_order = [1,2] G1 is first vaccinated
@@ -394,7 +383,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
         # muy.append(0)
         # r.append((1-ifr[k])/d)
         if len(vacc_order) == 0: # simultaneous vaccination. Same rate for both groups
-            v.append(v_rate*N_gr[k]) # daily # of vaccines is proportional to group size
+            v.append(v_rate*N_gr[k])
         else:
             if k == (vacc_order[0]-1):
                 v.append(v_rate*N_total)
@@ -404,18 +393,12 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     new_I.append(0)
     new_Y.append(0)
 
-    # Initial conditions vector is created
-    y0 = S+I+Y+R+D+V+new_I+new_Y
-    # ---------------------------------------------------------------------------------------------- #
-
     # ------------------------ MODEL SIMULATION ------------------------ #
     # Time steps simulated
     times = np.linspace(0,365,365)
     # Initial conditions
     init = S+I+Y+R+D+V+new_I+new_Y
 
-
-    # Different conditions for the vaccination lead to diferent model simulation running
     if v_rate == 0: # Execute noVacc function
         parms = N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M
         siyrd_sol = solve_ivp(fun=lambda t, y: noVacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
@@ -433,8 +416,8 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
             graph_title = 'Simultaneous vaccination'
             outfile_name = 'out_ageSIYRD_simultVacc%s_limit%s.tsv' % (vacc_rate,str(limit))
 
-        else: #  Execute priorVacc function
-            if vacc_order[0] == 1: # title changes according to vaccination order
+        else: #  Execute priorVacc function, either G1 first or G2 first
+            if vacc_order[0] == 1:
                 parms = N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M
                 siyrd_sol = solve_ivp(fun=lambda t, y: priorG1Vacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
                 siyrd_out = pd.DataFrame({"t":siyrd_sol["t"],"S1":siyrd_sol["y"][0],"S2":siyrd_sol["y"][1],"I1":siyrd_sol["y"][2],"I2":siyrd_sol["y"][3],"Y1":siyrd_sol["y"][4],"Y2":siyrd_sol["y"][5],"R1":siyrd_sol["y"][6],"R2":siyrd_sol["y"][7],"D1":siyrd_sol["y"][8],"D2":siyrd_sol["y"][9],"V1":siyrd_sol["y"][10],"V2":siyrd_sol["y"][11],"New_inf":siyrd_sol["y"][12],"New_reinf":siyrd_sol["y"][13]})
@@ -451,29 +434,29 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
                 outfile_name = 'out_ageSIYRD_priorG2Vacc%s_limit%s.tsv' % (vacc_rate,str(limit))
 
 
-    # Results of the simulation are saved in an output file
+    # Results are saved in an output file
     saveResults(outfile_name, times, siyrd_sol)
 
     # ------------------------ SIMULATION EVOLUTION PLOTTING ------------------------ #
     # Two plots, one for each group of age
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(27.2,7.5))
     fig.suptitle('Scenario: '+graph_title,fontsize=24,fontweight="bold",style='italic',color='#004c98')
-    # susceptible
-    ax1.plot(siyrd_out["t"], siyrd_out["S1"], 'blue', alpha=0.5, lw=2, label='S1')
-    ax2.plot(siyrd_out["t"], siyrd_out["S2"], 'blue', alpha=0.5, lw=2, label='S2')
-    # first-infected
-    ax1.plot(siyrd_out["t"], siyrd_out["I1"], 'red', alpha=0.5, lw=2, label='I1')
-    ax2.plot(siyrd_out["t"], siyrd_out["I2"], 'red', alpha=0.5, lw=2, label='I2')
-    # reinfected
-    ax1.plot(siyrd_out["t"], siyrd_out["Y1"], 'orangered', alpha=0.5, lw=2, label='Y1')
-    ax2.plot(siyrd_out["t"], siyrd_out["Y2"], 'orangered', alpha=0.5, lw=2, label='Y2')
-    # recovered
-    ax1.plot(siyrd_out["t"], siyrd_out["R1"], 'purple', alpha=0.5, lw=2, label='R1')
-    ax2.plot(siyrd_out["t"], siyrd_out["R2"], 'purple', alpha=0.5, lw=2, label='R2')
-    # deaths
-    ax1.plot(siyrd_out["t"], siyrd_out["D1"], 'darkgreen', alpha=0.5, lw=2, label='D1')
-    ax2.plot(siyrd_out["t"], siyrd_out["D2"], 'darkgreen', alpha=0.5, lw=2, label='D2')
-    # to plot the population amounts in millions
+    # Susceptible
+    ax1.plot(siyrd_out["t"], siyrd_out["S1"], 'blue', alpha=0.5, lw=2, label='S\N{SUBSCRIPT ONE}')
+    ax2.plot(siyrd_out["t"], siyrd_out["S2"], 'blue', alpha=0.5, lw=2, label='S\N{SUBSCRIPT TWO}')
+    # First-infected
+    ax1.plot(siyrd_out["t"], siyrd_out["I1"], 'red', alpha=0.5, lw=2, label='I\N{SUBSCRIPT ONE}')
+    ax2.plot(siyrd_out["t"], siyrd_out["I2"], 'red', alpha=0.5, lw=2, label='I\N{SUBSCRIPT TWO}')
+    # Reinfected
+    ax1.plot(siyrd_out["t"], siyrd_out["Y1"], 'orangered', alpha=0.5, lw=2, label='Y\N{SUBSCRIPT ONE}')
+    ax2.plot(siyrd_out["t"], siyrd_out["Y2"], 'orangered', alpha=0.5, lw=2, label='Y\N{SUBSCRIPT TWO}')
+    # Recovered
+    ax1.plot(siyrd_out["t"], siyrd_out["R1"], 'purple', alpha=0.5, lw=2, label='R\N{SUBSCRIPT ONE}')
+    ax2.plot(siyrd_out["t"], siyrd_out["R2"], 'purple', alpha=0.5, lw=2, label='R\N{SUBSCRIPT TWO}')
+    # Deaths
+    ax1.plot(siyrd_out["t"], siyrd_out["D1"], 'darkgreen', alpha=0.5, lw=2, label='D\N{SUBSCRIPT ONE}')
+    ax2.plot(siyrd_out["t"], siyrd_out["D2"], 'darkgreen', alpha=0.5, lw=2, label='D\N{SUBSCRIPT TWO}')
+    # Population in millions
     scale_y = 1e6
     ticks_y = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_y))
     # ax1 information
@@ -492,7 +475,6 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     ax2.tick_params(axis='x', labelsize=16)
     ax2.tick_params(axis='y', labelsize=16)
     ax2.yaxis.set_major_formatter(ticks_y)
-
     plt.show()
     fig.tight_layout()
 
@@ -515,18 +497,16 @@ def resultsAnalysis(age_limit,v_perc,datafiles):
             labels.append('Simultaneous')
             colors.append('purple')
 
-    # cumulative ammounts and cumulative percentages are saved in two arrays for both: infections and deaths
+    # Cumulative ammounts and cumulative percentages are saved in two arrays for both: infections and deaths
     cumulative_inf, percentages_inf, cumulative_def, percentages_def = [],[],[],[]
-    # total infections and deaths
+    # Total infections and deaths
     infections, deaths = [],[]
-    # total vaccinated individuals are saved for each group
+    # Total vaccinated individuals are saved for each group
     vaccG1, vaccG2 = [],[]
-    # total vaacinated individuals and coverages are saved for each group
+    # Total vaccinated individuals and coverages are saved for each group
     vaccs,vacc_coverages = [],[]
-    prueba = []
-    # we compute the analysis for each vaccination strategy file
+    # We compute the analysis for each vaccination strategy file
     for file in datafiles:
-        # each file is opened and information is saved in temporal arrays
         time,S1,S2,I1,I2,Y1,Y2,R1,R2,D1,D2,V1,V2,new_I, new_Y = [],[],[],[],[],[],[],[],[],[],[],[],[],[],[]
         with open(('outfiles/'+file), 'r') as outfile:
             rows = csv.reader(outfile, delimiter='\t')
@@ -548,39 +528,37 @@ def resultsAnalysis(age_limit,v_perc,datafiles):
                 new_I.append(float(row[13]))
                 new_Y.append(float(row[14]))
 
-        # total number of individuals in the population is calculated
+        # Total population is calculated
         N_total = S1[0]+S2[0]+I1[0]+I2[0]+Y1[0]+Y2[0]+R1[0]+R2[0]+D1[0]+D2[0]+V1[0]+V2[0]
 
-        # total active infections are calculated at each time step as the sum of (I_i + Y_i)
+        # Total active infections are calculated at each time step as the sum of (I_i + Y_i)
         total_inf = [I1[t]+I2[t]+Y1[t]+Y2[t] for t in range(len(time))]
-        # percentage of infections with respect total population is calculated
+        # Percentage of infections with respect total population is calculated
         perc_inf = [(inf*100)/N_total for inf in total_inf]
 
-        # total deaths are calculated at each time step as the sum of (D1 + D2)
+        # Total deaths are calculated at each time step as the sum of (D1 + D2)
         total_def = [D1[t]+D2[t] for t in range(len(time))]
-        # percentage of deaths with respect total population is calculated
+        # Percentage of deaths with respect total population is calculated
         perc_def = [(df*100)/N_total for df in total_def]
 
-        # total new infections ate calculated at each time step as the sum of new_I + new_Y
+        # Total new infections ate calculated at each time step as the sum of new_I + new_Y
         new_inf = [new_I[t]+new_Y[t] for t in range(len(time))]
-        # we add the information for each vaccination strategy to its corresponding array for plotting
+
+        # We add the information for each vaccination strategy to its corresponding array for plotting
         percentages_inf.append(perc_inf)
         cumulative_inf.append(total_inf)
         percentages_def.append(perc_def)
         cumulative_def.append(total_def)
-
-        # we calculate the total number of infections, deaths and vaccinated (G1 and G2 separately)
+        # We calculate the total number of infections, deaths and vaccinated individuals
         num_infections, num_deaths, num_vacc1, num_vacc2 = 0,0,0,0
         num_infections = max(new_inf)
         num_deaths = max(total_def)
         num_vacc1 = max(V1)
         num_vacc2 = max(V2)
-
+        # We calculate the vaccination coverage
         total_vacc = num_vacc1+num_vacc2
         vacc_coverage = (total_vacc/N_total)*100
-        prueba.append(new_inf)
 
-        # add the results to its corresponging array for future analysis
         infections.append(num_infections)
         deaths.append(num_deaths)
         vaccG1.append(num_vacc1)
@@ -588,8 +566,7 @@ def resultsAnalysis(age_limit,v_perc,datafiles):
         vaccs.append(total_vacc)
         vacc_coverages.append(vacc_coverage)
 
-    # Output file is created for the age limit and vaccination rate pre-defined.
-    # We save the total infections, vaccinated, deaths and reductions for each vaccina strategy.
+    # We save the total figures for each vaccination strategy
     outfile = 'summary.tsv'
     fout = open(('outfiles/'+outfile),"w+")
     fout.write('Vaccination strategy\tTotal infections\tTotal deaths\tInfection reduction(%)\tDeaths reduction(%)\tG1-vaccinated\tG2-vaccinated\tTotal vaccinated\tVaccination coverage (%)\n')
