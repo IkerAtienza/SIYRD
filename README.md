@@ -1,1 +1,1 @@
-SIYRD model test
+README FILE: SIYRD model implementation
