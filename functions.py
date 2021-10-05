@@ -26,33 +26,48 @@ def plot_ifr_contacts(x,country):
     m_matrix = np.array(y).astype("float")
     # Contacts are calculated for each group as the row-elements sum
     contacts =  [sum(m) for m in m_matrix]
-    # Ifr is calculated as percentage
-    ifr = [fr*100 for fr in ifr]
+    # Recovery and death rates are calculated given the ifr data\
     ifr = ifr[0]
+    r, mui = [], []
+    for risk in ifr:
+        r += [(1-risk)/13]
+        mui += [risk/13]
+
+    # Ifr is calculated as percentage to plot it
+    ifr = [fr*100 for fr in ifr]
 
     # Labels are created
     labels = []
-    labels.append('G1 ('+r'$<$'+str(x)+')')
-    labels.append('G2 ('+r'$\geq$'+str(x)+')')
+    labels.append(r'$G_1$ ($<$'+str(x)+')')
+    labels.append(r'$G_2$ ($\geq$'+str(x)+')')
 
     # IFR and contacts bar plots are created
     fig, ax = plt.subplots(figsize=(8,8))
     ax2=ax.twinx()
     x = np.arange(0,len(labels))
     width = 0.2
-    rects1 = ax.bar(x - width/1.8, contacts, width, label='Contacts',color='steelblue',edgecolor='#004c98',linewidth=2)
-    rects2 = ax2.bar(x + width/1.8, ifr, width, label='ifr',color='maroon',edgecolor='#4c0026',linewidth=2)
-    y1 = np.arange(0,16,2)
+    rects1 = ax.bar(x - width/1.8, contacts, width, label='Contacts',color='#767676',edgecolor='#626262',linewidth=2)
+    rects2 = ax2.bar(x + width/1.8, ifr, width, label='ifr',color='#DAA520',edgecolor='#967116',linewidth=2)
+    y1 = np.arange(0,18,2)
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize = 20)
+    ax.set_xticklabels(labels, fontsize = 24)
     ax.set_yticks(y1)
-    ax.set_yticklabels(y1, fontsize = 20, color='steelblue')
-    ax.set_ylabel('Number of contacts',color='steelblue',fontsize=20)
+    ax.set_yticklabels(y1, fontsize = 22, color='#767676')
+    ax.set_ylabel('Number of contacts',color='#767676',fontsize=24)
     y2 = np.arange(0,27.5,2.5)
     ax2.set_yticks(y2)
-    ax2.set_yticklabels(y2, fontsize = 20, color='maroon')
-    ax2.set_ylabel('% Infection Fatality Risk',color='maroon',fontsize=20)
+    ax2.set_yticklabels(y2, fontsize = 22, color='#DAA520')
+    ax2.set_ylabel('% Infection Fatality Risk',color='#DAA520',fontsize=24)
     plt.show()
+
+    data = {'Group' : [u'G\u2081',u'G\u2082'],
+            'Recovery rate' : [r[0], r[1]],
+            'Fatality rate' : [mui[0], mui[1]]
+            }
+    df = pd.DataFrame(data)
+    df = df.set_index('Group')
+    df = df.round(decimals=5)
+    display(df)
 
 # Groups density plot
 def plot_groups_density(x,country):
@@ -81,38 +96,47 @@ def plot_groups_density(x,country):
     # by adding all elements in each sublist we get the # of individuals of each group defined
     N_gr = [sum(element)/1E6 for element in N_gr]
     total_population = sum(N_gr)
+    relN_gr = []
+    relN_gr += [group/total_population for group in N_gr]
 
     # y_step variable is created for the correct representation
-    if int(total_population) in range(0,10):
+    if int(total_population) in range(0,20):
         y_step = 2
-    elif int(total_population) in range(10,50):
-        y_step = 5
-    elif int(total_population) in range(50,100):
+    elif int(total_population) in range(20,100):
         y_step = 10
     elif int(total_population) in range(100,300):
         y_step = 20
     elif int(total_population) in range(300,500):
         y_step = 50
     elif int(total_population) > 500:
-        y_step = 100
+        y_step = 200
 
-    # labels are created
+    # Labels are created
     labels = []
-    labels.append('G1 ('+r'$<$'+str(x)+')')
-    labels.append('G2 ('+r'$\geq$'+str(x)+')')
+    labels.append(r'$G_1$ ($<$'+str(x)+')')
+    labels.append(r'$G_2$ ($\geq$'+str(x)+')')
 
     # Population density barplot is created
     fig, ax = plt.subplots(figsize=(8,8))
     x = np.arange(0,len(labels))
     y = np.arange(0,total_population+y_step, y_step)
     width = 0.25
-    rects1 = ax.bar(x , N_gr, width, color='steelblue', edgecolor='#004c98',linewidth=2)
+    rects1 = ax.bar(x , N_gr, width, color='#36426b', edgecolor='#222A44',linewidth=2)
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize = 20)
+    ax.set_xticklabels(labels, fontsize = 24)
     ax.set_yticks(y)
-    ax.set_ylabel('Population in millions',fontsize=20)
-    ax.tick_params(axis='y', labelsize=18)
+    ax.set_ylabel('Population in millions',fontsize=24)
+    ax.tick_params(axis='y', labelsize=22)
     plt.show()
+
+    data = {'Group' : [u'G\u2081',u'G\u2082'],
+            'Abundance' : [N_gr[0], N_gr[1]],
+            'Fraction' : [relN_gr[0],relN_gr[1]]
+            }
+    df = pd.DataFrame(data)
+    df = df.set_index('Group')
+    df = df.round(decimals=2)
+    display(df)
 
 # Population pyramid plot
 def plot_population_pyramid(country):
@@ -149,18 +173,18 @@ def plot_population_pyramid(country):
     x = np.arange(-x_limit,x_limit+step,step)
 
     # Population pyramid is plotted
-    fig, ax = plt.subplots(figsize=(9,12))
+    fig, ax = plt.subplots(figsize=(10,13.3))
     ax.barh(ages, -males, color = 'steelblue', label = 'Male', edgecolor='#004c98',linewidth=0.5)
     ax.barh(ages, females, color = 'maroon', edgecolor='#4c0026',linewidth=0.5)
     ax.set_xticks(x*1E6)
     ax.set_xticklabels([str(abs(v)) for v in x])
-    ax.set_xlabel('Population in millions',fontsize=20)
-    leg1 = ax.legend(loc='upper left', fontsize=18)
+    ax.set_xlabel('Population in millions',fontsize=24)
+    leg1 = ax.legend(loc='upper left', fontsize=22)
     red_patch = mpatches.Patch(color='maroon',label='Female')
-    ax.legend(handles=[red_patch], loc = 'upper right', fontsize=18)
+    ax.legend(handles=[red_patch], loc = 'upper right', fontsize=22)
     ax.add_artist(leg1)
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
+    ax.tick_params(axis='x', labelsize=22)
+    ax.tick_params(axis='y', labelsize=22)
     plt.show()
 
 # Save simulation results in output file
@@ -344,19 +368,11 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
             ifr = row
     for i in range(len(ifr)):
         ifr[i] = float(ifr[i])
-
-    # ---------------------------------------------------------------------------------------------- #
-
-    # alpha, d, R0 = 0.5, 13, 1
-    # bsi = R0 / d
-    # bri = 0.01 * bsi
-    # bry = alpha * bri
-    # bsy = (bry/bri)*bsi
+    # v_rate represents percentage of population daily vaccinated
     v_rate = vacc_rate / 100
-    # mui, muy, r , v = [], [], [],[]
     v = []
     S, I, Y , R , D = [], [], [] , [], []
-    new_I, new_Y = [],[] # new infections and reinfections recorded
+    new_I, new_Y = [],[] # new infections and reinfections are recorded
     V = [] # new vaccinations are recorded
 
     # Vaccination order is created.
@@ -379,9 +395,6 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
         R.append(0)
         D.append(0)
         V.append(0)
-        # mui.append(ifr[k]/d)
-        # muy.append(0)
-        # r.append((1-ifr[k])/d)
         if len(vacc_order) == 0: # simultaneous vaccination. Same rate for both groups
             v.append(v_rate*N_gr[k])
         else:
@@ -415,14 +428,13 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
 
             graph_title = 'Simultaneous vaccination'
             outfile_name = 'out_ageSIYRD_simultVacc%s_limit%s.tsv' % (vacc_rate,str(limit))
-
         else: #  Execute priorVacc function, either G1 first or G2 first
             if vacc_order[0] == 1:
                 parms = N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M
                 siyrd_sol = solve_ivp(fun=lambda t, y: priorG1Vacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
                 siyrd_out = pd.DataFrame({"t":siyrd_sol["t"],"S1":siyrd_sol["y"][0],"S2":siyrd_sol["y"][1],"I1":siyrd_sol["y"][2],"I2":siyrd_sol["y"][3],"Y1":siyrd_sol["y"][4],"Y2":siyrd_sol["y"][5],"R1":siyrd_sol["y"][6],"R2":siyrd_sol["y"][7],"D1":siyrd_sol["y"][8],"D2":siyrd_sol["y"][9],"V1":siyrd_sol["y"][10],"V2":siyrd_sol["y"][11],"New_inf":siyrd_sol["y"][12],"New_reinf":siyrd_sol["y"][13]})
 
-                graph_title = 'G1-priority vaccination'
+                graph_title = u'G\u2081'+' priority vaccination'
                 outfile_name = 'out_ageSIYRD_priorG1Vacc%s_limit%s.tsv' % (vacc_rate,str(limit))
 
             else:
@@ -430,7 +442,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
                 siyrd_sol = solve_ivp(fun=lambda t, y: priorG2Vacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
                 siyrd_out = pd.DataFrame({"t":siyrd_sol["t"],"S1":siyrd_sol["y"][0],"S2":siyrd_sol["y"][1],"I1":siyrd_sol["y"][2],"I2":siyrd_sol["y"][3],"Y1":siyrd_sol["y"][4],"Y2":siyrd_sol["y"][5],"R1":siyrd_sol["y"][6],"R2":siyrd_sol["y"][7],"D1":siyrd_sol["y"][8],"D2":siyrd_sol["y"][9],"V1":siyrd_sol["y"][10],"V2":siyrd_sol["y"][11],"New_inf":siyrd_sol["y"][12],"New_reinf":siyrd_sol["y"][13]})
 
-                graph_title = 'G2-priority vaccination'
+                graph_title = u'G\u2082'+' priority vaccination'
                 outfile_name = 'out_ageSIYRD_priorG2Vacc%s_limit%s.tsv' % (vacc_rate,str(limit))
 
 
@@ -442,20 +454,20 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(27.2,7.5))
     fig.suptitle('Scenario: '+graph_title,fontsize=24,fontweight="bold",style='italic',color='#004c98')
     # Susceptible
-    ax1.plot(siyrd_out["t"], siyrd_out["S1"], 'blue', alpha=0.5, lw=2, label='S\N{SUBSCRIPT ONE}')
-    ax2.plot(siyrd_out["t"], siyrd_out["S2"], 'blue', alpha=0.5, lw=2, label='S\N{SUBSCRIPT TWO}')
+    ax1.plot(siyrd_out["t"], siyrd_out["S1"], 'blue', alpha=0.5, lw=2, label='$S_1$')
+    ax2.plot(siyrd_out["t"], siyrd_out["S2"], 'blue', alpha=0.5, lw=2, label='$S_2$')
     # First-infected
-    ax1.plot(siyrd_out["t"], siyrd_out["I1"], 'red', alpha=0.5, lw=2, label='I\N{SUBSCRIPT ONE}')
-    ax2.plot(siyrd_out["t"], siyrd_out["I2"], 'red', alpha=0.5, lw=2, label='I\N{SUBSCRIPT TWO}')
+    ax1.plot(siyrd_out["t"], siyrd_out["I1"], 'red', alpha=0.5, lw=2, label='$I_1$')
+    ax2.plot(siyrd_out["t"], siyrd_out["I2"], 'red', alpha=0.5, lw=2, label='$I_2$')
     # Reinfected
-    ax1.plot(siyrd_out["t"], siyrd_out["Y1"], 'orangered', alpha=0.5, lw=2, label='Y\N{SUBSCRIPT ONE}')
-    ax2.plot(siyrd_out["t"], siyrd_out["Y2"], 'orangered', alpha=0.5, lw=2, label='Y\N{SUBSCRIPT TWO}')
+    ax1.plot(siyrd_out["t"], siyrd_out["Y1"], 'orangered', alpha=0.5, lw=2, label='$Y_1$')
+    ax2.plot(siyrd_out["t"], siyrd_out["Y2"], 'orangered', alpha=0.5, lw=2, label='$Y_2$')
     # Recovered
-    ax1.plot(siyrd_out["t"], siyrd_out["R1"], 'purple', alpha=0.5, lw=2, label='R\N{SUBSCRIPT ONE}')
-    ax2.plot(siyrd_out["t"], siyrd_out["R2"], 'purple', alpha=0.5, lw=2, label='R\N{SUBSCRIPT TWO}')
+    ax1.plot(siyrd_out["t"], siyrd_out["R1"], 'purple', alpha=0.5, lw=2, label='$R_1$')
+    ax2.plot(siyrd_out["t"], siyrd_out["R2"], 'purple', alpha=0.5, lw=2, label='$R_2$')
     # Deaths
-    ax1.plot(siyrd_out["t"], siyrd_out["D1"], 'darkgreen', alpha=0.5, lw=2, label='D\N{SUBSCRIPT ONE}')
-    ax2.plot(siyrd_out["t"], siyrd_out["D2"], 'darkgreen', alpha=0.5, lw=2, label='D\N{SUBSCRIPT TWO}')
+    ax1.plot(siyrd_out["t"], siyrd_out["D1"], 'darkgreen', alpha=0.5, lw=2, label='$D_1$')
+    ax2.plot(siyrd_out["t"], siyrd_out["D2"], 'darkgreen', alpha=0.5, lw=2, label='$D_2$')
     # Population in millions
     scale_y = 1e6
     ticks_y = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_y))
@@ -488,10 +500,10 @@ def resultsAnalysis(age_limit,v_perc,datafiles):
             labels.append('No vaccination')
             colors.append('blue')
         elif 'G1' in file:
-            labels.append('G1 priority')
+            labels.append(u'G\u2081'+' priority')
             colors.append('red')
         elif 'G2' in file:
-            labels.append('G2 priority')
+            labels.append(u'G\u2082'+' priority')
             colors.append('orange')
         else:
             labels.append('Simultaneous')
@@ -569,7 +581,7 @@ def resultsAnalysis(age_limit,v_perc,datafiles):
     # We save the total figures for each vaccination strategy
     outfile = 'summary.tsv'
     fout = open(('outfiles/'+outfile),"w+")
-    fout.write('Vaccination strategy\tTotal infections\tTotal deaths\tInfection reduction(%)\tDeaths reduction(%)\tG1-vaccinated\tG2-vaccinated\tTotal vaccinated\tVaccination coverage (%)\n')
+    fout.write('Vaccination strategy\tTotal infections\tTotal deaths\tInfection reduction(%)\tDeaths reduction(%)\t'+u'G\u2081 vaccinated\t'+u'G\u2082 vaccinated\tTotal vaccinated\tVaccination coverage (%)\n')
     for i in range(len(datafiles)):
         inf_reduction = 0
         def_reduction = 0
