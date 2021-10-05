@@ -61,12 +61,11 @@ def plot_ifr_contacts(x,country):
     plt.show()
 
     data = {'Group' : [u'G\u2081',u'G\u2082'],
-            'Recovery rate' : [r[0], r[1]],
-            'Fatality rate' : [mui[0], mui[1]]
+            'Recovery rate' : [float(r[0]), float(r[1])],
+            'Fatality rate' : [float(mui[0]), float(mui[1])]
             }
     df = pd.DataFrame(data)
-    df = df.set_index('Group')
-    df = df.round(decimals=5)
+    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.5f}',subset = ['Recovery rate','Fatality rate']).hide_index()
     display(df)
 
 # Groups density plot
@@ -134,8 +133,7 @@ def plot_groups_density(x,country):
             'Fraction' : [relN_gr[0],relN_gr[1]]
             }
     df = pd.DataFrame(data)
-    df = df.set_index('Group')
-    df = df.round(decimals=2)
+    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.2f}',subset = ['Abundance','Fraction']).hide_index()
     display(df)
 
 # Population pyramid plot
@@ -581,7 +579,7 @@ def resultsAnalysis(age_limit,v_perc,datafiles):
     # We save the total figures for each vaccination strategy
     outfile = 'summary.tsv'
     fout = open(('outfiles/'+outfile),"w+")
-    fout.write('Vaccination strategy\tTotal infections\tTotal deaths\tInfection reduction(%)\tDeaths reduction(%)\t'+u'G\u2081 vaccinated\t'+u'G\u2082 vaccinated\tTotal vaccinated\tVaccination coverage (%)\n')
+    fout.write('Vaccination strategy\tTotal infections\tTotal deaths\tInfection reduction (%)\tMortality reduction (%)\t'+u'G\u2081 vaccinated\t'+u'G\u2082 vaccinated\tTotal vaccinated\tVaccination coverage (%)\n')
     for i in range(len(datafiles)):
         inf_reduction = 0
         def_reduction = 0
