@@ -129,11 +129,11 @@ def plot_groups_density(x,country):
     plt.show()
 
     data = {'Group' : [u'G\u2081',u'G\u2082'],
-            'Abundance' : [N_gr[0], N_gr[1]],
+            'Abundance(M)' : [N_gr[0], N_gr[1]],
             'Fraction' : [relN_gr[0],relN_gr[1]]
             }
     df = pd.DataFrame(data)
-    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.2f}',subset = ['Abundance','Fraction']).hide_index()
+    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.2f}',subset = ['Abundance(M)','Fraction']).hide_index()
     display(df)
 
 # Population pyramid plot
