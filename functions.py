@@ -412,7 +412,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
 
     if v_rate == 0: # Execute noVacc function
         parms = N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M
-        siyrd_sol = solve_ivp(fun=lambda t, y: noVacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
+        siyrd_sol = solve_ivp(fun=lambda t, y: noVacc(t,y,parms), t_span=[min(times),max(times)], y0=init, method='BDF', t_eval=times)
         siyrd_out = pd.DataFrame({"t":siyrd_sol["t"],"S1":siyrd_sol["y"][0],"S2":siyrd_sol["y"][1],"I1":siyrd_sol["y"][2],"I2":siyrd_sol["y"][3],"Y1":siyrd_sol["y"][4],"Y2":siyrd_sol["y"][5],"R1":siyrd_sol["y"][6],"R2":siyrd_sol["y"][7],"D1":siyrd_sol["y"][8],"D2":siyrd_sol["y"][9],"V1":siyrd_sol["y"][10],"V2":siyrd_sol["y"][11],"New_inf":siyrd_sol["y"][12],"New_reinf":siyrd_sol["y"][13]})
 
         graph_title = 'No vaccination'
@@ -421,7 +421,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     else:
         if len(vacc_order) == 0: #  Execute simultVacc function
             parms = N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M
-            siyrd_sol = solve_ivp(fun=lambda t, y: simultVacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
+            siyrd_sol = solve_ivp(fun=lambda t, y: simultVacc(t,y,parms), t_span=[min(times),max(times)], y0=init, method='BDF', t_eval=times)
             siyrd_out = pd.DataFrame({"t":siyrd_sol["t"],"S1":siyrd_sol["y"][0],"S2":siyrd_sol["y"][1],"I1":siyrd_sol["y"][2],"I2":siyrd_sol["y"][3],"Y1":siyrd_sol["y"][4],"Y2":siyrd_sol["y"][5],"R1":siyrd_sol["y"][6],"R2":siyrd_sol["y"][7],"D1":siyrd_sol["y"][8],"D2":siyrd_sol["y"][9],"V1":siyrd_sol["y"][10],"V2":siyrd_sol["y"][11],"New_inf":siyrd_sol["y"][12],"New_reinf":siyrd_sol["y"][13]})
 
             graph_title = 'Simultaneous vaccination'
@@ -429,7 +429,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
         else: #  Execute priorVacc function, either G1 first or G2 first
             if vacc_order[0] == 1:
                 parms = N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M
-                siyrd_sol = solve_ivp(fun=lambda t, y: priorG1Vacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
+                siyrd_sol = solve_ivp(fun=lambda t, y: priorG1Vacc(t,y,parms), t_span=[min(times),max(times)], y0=init, method='BDF', t_eval=times)
                 siyrd_out = pd.DataFrame({"t":siyrd_sol["t"],"S1":siyrd_sol["y"][0],"S2":siyrd_sol["y"][1],"I1":siyrd_sol["y"][2],"I2":siyrd_sol["y"][3],"Y1":siyrd_sol["y"][4],"Y2":siyrd_sol["y"][5],"R1":siyrd_sol["y"][6],"R2":siyrd_sol["y"][7],"D1":siyrd_sol["y"][8],"D2":siyrd_sol["y"][9],"V1":siyrd_sol["y"][10],"V2":siyrd_sol["y"][11],"New_inf":siyrd_sol["y"][12],"New_reinf":siyrd_sol["y"][13]})
 
                 graph_title = u'G\u2081'+' priority vaccination'
@@ -437,7 +437,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
 
             else:
                 parms = N_gr,bsi,bsy,bri,bry,mui1,mui2,muy1,muy2,r1,r2,v,M
-                siyrd_sol = solve_ivp(fun=lambda t, y: priorG2Vacc(t,y,parms), t_span=[min(times),max(times)], y0=init, t_eval=times)
+                siyrd_sol = solve_ivp(fun=lambda t, y: priorG2Vacc(t,y,parms), t_span=[min(times),max(times)], y0=init, method='BDF', t_eval=times)
                 siyrd_out = pd.DataFrame({"t":siyrd_sol["t"],"S1":siyrd_sol["y"][0],"S2":siyrd_sol["y"][1],"I1":siyrd_sol["y"][2],"I2":siyrd_sol["y"][3],"Y1":siyrd_sol["y"][4],"Y2":siyrd_sol["y"][5],"R1":siyrd_sol["y"][6],"R2":siyrd_sol["y"][7],"D1":siyrd_sol["y"][8],"D2":siyrd_sol["y"][9],"V1":siyrd_sol["y"][10],"V2":siyrd_sol["y"][11],"New_inf":siyrd_sol["y"][12],"New_reinf":siyrd_sol["y"][13]})
 
                 graph_title = u'G\u2082'+' priority vaccination'
