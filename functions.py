@@ -65,7 +65,8 @@ def plot_ifr_contacts(x,country):
             'Fatality rate' : [float(mui[0]), float(mui[1])]
             }
     df = pd.DataFrame(data)
-    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.5f}',subset = ['Recovery rate','Fatality rate']).hide_index()
+    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.5f}',subset = ['Recovery rate','Fatality rate']).hide()
+    # df = df.style.set_properties(**{'text-align': 'center'}).format('{:.5f}',subset = ['Recovery rate','Fatality rate']).hide_index()
     display(df)
 
 # Groups density plot
@@ -133,7 +134,8 @@ def plot_groups_density(x,country):
             'Fraction' : [relN_gr[0],relN_gr[1]]
             }
     df = pd.DataFrame(data)
-    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.2f}',subset = ['Abundance(M)','Fraction']).hide_index()
+    df = df.style.set_properties(**{'text-align': 'center'}).format('{:.2f}',subset = ['Abundance(M)','Fraction']).hide()
+    # df = df.style.set_properties(**{'text-align': 'center'}).format('{:.2f}',subset = ['Abundance(M)','Fraction']).hide_index()
     display(df)
 
 # Population pyramid plot
@@ -485,7 +487,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     ax2.tick_params(axis='x', labelsize=16)
     ax2.tick_params(axis='y', labelsize=16)
     ax2.yaxis.set_major_formatter(ticks_y)
-    plt.show()
+    # plt.show()
     fig.tight_layout()
 
     return outfile_name
