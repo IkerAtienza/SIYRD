@@ -487,7 +487,7 @@ def agesiyrd(country,bsi,bri,bsy,bry,r1,r2,mui1,mui2,muy1,muy2,vacc_choice,vacc_
     ax2.tick_params(axis='x', labelsize=16)
     ax2.tick_params(axis='y', labelsize=16)
     ax2.yaxis.set_major_formatter(ticks_y)
-    # plt.show()
+    plt.show()
     fig.tight_layout()
 
     return outfile_name
